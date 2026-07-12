@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <!-- إجبار المتصفح على عرض نسخة الديسكتوب -->
+    <meta name="viewport" content="width=1024, user-scalable=yes">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- مكتبات HLS و Firebase -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <title>.</title>
+    <style>
+        body { 
+            -webkit-user-select: none; -ms-user-select: none; user-select: none;
+            background: #0a0c10; color: #fff; font-family: 'Tajawal', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; 
+            min-width: 1024px; /* إجبار عرض الديسكتوب */
+        }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #1c222d; padding: 30px; border-radius: 25px; text-align: center; max-width: 550px; width: 100%; border: 2px solid #ffcc00; max-height: 90vh; overflow-y: auto; }
+        .modal-content h2 { color: #ffcc00; margin-bottom: 15px; font-size: 24px; }
+        .modal-content p { color: #ccc; margin-bottom: 25px; line-height: 1.6; }
+        .btn-join, .btn-watch { 
+            display: block; width: 100%; box-sizing: border-box; padding: 15px; margin-bottom: 12px; border-radius: 12px; 
+            text-decoration: none; font-weight: bold; border: none; font-size: 16px; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .btn-join { background: #ffcc00; color: #000; }
+        .btn-watch { background: #2c3546; color: #fff; }
+        .btn-join:active, .btn-watch:active { background: #ff0000 !important; color: #fff !important; transform: scale(0.98); }
+
+        .container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+        
+        /* مقاس الشاشة المتناسق (60% من الشاشة) */
+        .video-wrapper { position: relative; width: 100%; height: 60vh; min-height: 400px; background: #000; flex-shrink: 0; border-bottom: 2px solid #1c222d; }
+        video, iframe { width: 100%; height: 100%; object-fit: contain; border: none; }
+        .loader-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 20; }
+        .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid #ffcc00; border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        .sound-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ffcc00; color: #000; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: 900; z-index: 10; font-size: 16px; }
+        
+        .header-section { padding: 15px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .brand { font-size: 24px; font-weight: 900; color: #ffcc00; }
+        
+        .top-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .live-status-bar { display: flex; align-items: center; gap: 6px; padding: 6px 15px; border: 1px solid #ff0000; border-radius: 8px; color: #ff0000; font-weight: 700; font-size: 14px; background: rgba(255, 0, 0, 0.05); }
+
+        /* ستايل زراير التحكم والداشبورد */
+        .btn-dashboard, .btn-control {
+            background: #1c222d; color: #ffcc00; border: 1px solid #ffcc00; padding: 6px 15px; 
+            text-align: center; font-weight: bold; font-size: 14px; cursor: pointer; 
+            border-radius: 8px; margin: 0; transition: 0.3s;
+        }
+        .btn-control { padding: 6px 12px; font-size: 16px; }
+        .btn-dashboard:hover, .btn-control:hover { background: #ffcc00; color: #000; }
+
+        /* ستايل زراير التالي والسابق */
+        .btn-nav {
+            background: #ffcc00; color: #000; border: none; padding: 6px 20px; 
+            text-align: center; font-weight: 900; font-size: 14px; cursor: pointer; 
+            border-radius: 50px; margin: 0; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .btn-nav:hover { background: #fff; color: #000; transform: scale(1.05); }
+        .btn-nav:active { transform: scale(0.95); }
+
+        .channel-list-container { flex: 1; overflow-y: auto; padding: 15px; }
+        
+        .folder { margin-bottom: 10px; }
+        .folder-header { 
+            background: #2c3546; padding: 15px 20px; border-radius: 12px; font-weight: bold; font-size: 18px;
+            cursor: pointer; border: 1px solid #3a475e; color: #ffcc00; 
+            display: flex; justify-content: space-between; align-items: center; transition: 0.3s;
+        }
+        .folder-header:hover { background: #3a475e; border-color: #ffcc00; }
+        .folder-content { display: none; padding: 10px 10px 0 10px; }
+        .folder.active .folder-content { display: block; }
+        .folder.active .folder-header { background: #ffcc00; color: #000; }
+        .folder-icon { font-size: 14px; transition: transform 0.3s; }
+        .folder.active .folder-icon { transform: rotate(180deg); }
+
+        .channel-bar { background: #1c222d; padding: 15px 20px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border: 1px solid #232936; margin-bottom: 8px; transition: 0.3s; font-size: 16px; }
+        .channel-bar:hover { background: #252d3d; border-color: #ffcc00; }
+        
+        .live-indicator { display: flex; align-items: center; gap: 5px; color: #ff0000; font-size: 14px; font-weight: bold; }
+        .live-dot { width: 10px; height: 10px; background: #ff0000; border-radius: 50%; animation: pulse 1s infinite; }
+        
+        .dashboard-textarea {
+            width: 100%; box-sizing: border-box; background: #0a0c10; color: #fff; 
+            border: 1px solid #ffcc00; border-radius: 10px; padding: 10px; 
+            margin-bottom: 15px; resize: none; font-family: monospace; font-size: 14px; direction: ltr;
+        }
+        
+        .dashboard-input {
+            flex: 1; box-sizing: border-box; background: #0a0c10; color: #fff; 
+            border: 1px solid #ffcc00; border-radius: 10px; padding: 10px; 
+            font-family: monospace; font-size: 14px; direction: ltr;
+        }
+
+        /* ستايل مربع جلب الإطارات الجديد */
+        .iframe-list-box {
+            text-align: right; max-height: 350px; overflow-y: auto; margin-bottom: 20px; 
+            background: #0a0c10; padding: 10px; border-radius: 10px; border: 1px solid #3a475e;
+        }
+
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#9816a2">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js?v=3983191631783858506654')
+            .then(reg => {
+              console.log('SW Registered');
+              reg.update();
+            })
+            .catch(err => console.log('SW Failed', err));
+        });
+      }
+    </script>
+</head>
+<body oncontextmenu="return false;">
+
+    <!-- إعدادات الفايربيز -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtIkF-UhkeFa-cxutgJAQpR7K_IjKxloc",
+            authDomain: "spygame-337ee.firebaseapp.com",
+            databaseURL: "https://spygame-337ee-default-rtdb.firebaseio.com",
+            projectId: "spygame-337ee",
+            storageBucket: "spygame-337ee.firebasestorage.app"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+    </script>
+
+    <!-- لوحة التحكم (الداشبورد) -->
+    <div class="modal-overlay" id="dashboardModal" style="display: none;">
+        <div class="modal-content">
+            <h2 style="font-size: 24px;">⚙️ لوحة التحكم (الإعدادات والقنوات)</h2>
+            
+            <p style="font-size: 14px; margin-bottom: 8px; text-align: right; color: #fff;">رابط المصدر (اكتب firebase للسيرفر الأساسي أو رابط خارجي):</p>
+            <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                <input type="text" id="viberLink" class="dashboard-input" placeholder="firebase أو https://..." value="firebase">
+                <button class="btn-join" style="width: auto; padding: 10px 15px; margin: 0; background: #28a745; color: white; font-size: 14px;" onclick="saveViberLink()">حفظ المسار</button>
+                <button class="btn-join" style="width: auto; padding: 10px 15px; margin: 0; font-size: 14px;" onclick="loadFromViber(false)">جلب</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <input type="file" id="fileUpload" accept=".m3u,.m3u8,.txt" style="display: none;" onchange="handleFileUpload(event)">
+                <button class="btn-join" style="margin: 0; flex: 1; background: #0088cc; color: white;" onclick="document.getElementById('fileUpload').click()">📁 رفع M3U</button>
+                <button class="btn-watch" style="margin: 0; flex: 1; background: #28a745;" onclick="downloadM3uFile()">💾 حفظ M3U</button>
+                <button class="btn-watch" style="margin: 0; flex: 1; background: #8e44ad;" onclick="downloadFullHTML()">🌐 حفظ HTML كامل</button>
+            </div>
+
+            <button class="btn-watch" style="background: #e74c3c; width: 100%; margin-bottom: 10px; border-color: #c0392b; font-weight: bold;" onclick="uploadToFirebase()">☁️ رفع وتحديث القنوات في سيرفر فايربيز</button>
+
+            <p style="font-size: 14px; margin-bottom: 10px; text-align: right; color: #fff;">
+                النص المباشر للملف (M3U أو يدوي):
+                <br><span style="font-size:12px; color:#aaa;">* ملاحظة: قنوات "القنوات المحددة" تظهر في الأعلى بدون فولدرات.</span>
+            </p>
+            <textarea id="m3u8Data" class="dashboard-textarea" rows="7" placeholder="#EXTM3U&#10;#EXTINF:-1 group-title=&quot;القنوات المحددة&quot;,الفجر سبورت&#10;https://test.antmedia.io/live/streams/fajer.m3u8"></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn-join" onclick="importM3u8(false)" style="margin: 0;">📥 استيراد للمشغل</button>
+                <button class="btn-watch" onclick="exportM3u8()" style="margin: 0;">📤 تصدير للمربع</button>
+            </div>
+            
+            <button class="btn-watch" style="background: #ff0000; margin-bottom: 0;" onclick="closeDashboard()">إغلاق اللوحة</button>
+        </div>
+    </div>
+
+    <!-- نافذة جلب الإطارات المنبثقة -->
+    <div class="modal-overlay" id="iframeModal" style="display: none; z-index: 10000;">
+        <div class="modal-content" style="max-width: 650px;">
+            <h2 style="font-size: 22px;">🔗 الإطارات المستخرجة (Deep Scan)</h2>
+            <div id="iframeList" class="iframe-list-box">
+                <!-- الروابط ستظهر هنا -->
+            </div>
+            <button class="btn-watch" style="background: #ff0000; margin-bottom: 0;" onclick="closeIframeModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- منطقة الفيديو -->
+        <div class="video-wrapper" id="videoWrapper">
+            <div id="loader" class="loader-overlay"><div class="spinner"></div></div>
+            <div class="sound-btn" id="soundBtn">🔊 اضغط لتفعيل الصوت</div>
+            
+            <!-- مشغل الفيديو الأساسي -->
+            <video id="video" autoplay muted playsinline controls style="display: block; transition: transform 0.3s ease;"></video>
+            
+            <!-- مشغل الإطارات (Iframes) والمواقع -->
+            <iframe id="iframe-player" allow="encrypted-media; autoplay" allowfullscreen style="display: none; transition: transform 0.3s ease;"></iframe>
+        </div>
+
+        <div class="header-section">
+            <header class="header">
+                <div class="brand">عمر سبورت</div>
+                <div class="top-controls">
+                    <!-- زراير التنقل (التالي، جلب الآي فريم، السابق) -->
+                    <button class="btn-nav" onclick="playNext()" title="القناة التالية">التالي ⏭</button>
+                    
+                    <button class="btn-control" style="background: #0088cc; color: white;" onclick="fetchCurrentIframe()" title="فحص وجلب جميع الإطارات من القناة">🔗 جلب Iframe</button>
+                    
+                    <button class="btn-nav" onclick="playPrev()" title="القناة السابقة">السابق ⏮</button>
+                    
+                    <!-- باقي زراير التحكم -->
+                    <button class="btn-control" onclick="reloadCurrentStream()" title="تحديث القناة (إعادة تحميل)">🔄</button>
+                    <button class="btn-control" onclick="openExternal()" title="فتح في نافذة خارجية">↗</button>
+                    <button class="btn-control" onclick="closePlayer()" title="إغلاق المشغل">✖</button>
+                    <button class="btn-control" onclick="rotatePlayer()" title="تدوير الشاشة">↻</button>
+                    <button class="btn-control" onclick="toggleFullScreen()" title="تكبير الشاشة (Fullscreen)">⛶</button>
+                    
+                    <button class="btn-dashboard" onclick="openDashboard()">⚙️ لوحة التحكم</button>
+                    <div class="live-status-bar"><div class="live-dot"></div><span>بث مباشر</span></div>
+                </div>
+            </header>
+            
+            <!-- شريط التشغيل المباشر الجديد -->
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <input type="text" id="directPlayInput" class="dashboard-input" style="background: #1c222d; border-color: #3a475e;" placeholder="أدخل رابط مباشر (M3U8 / MP4 / موقع إطار) لتشغيله فوراً على المشغل...">
+                <button class="btn-join" style="width: auto; padding: 10px 25px; margin: 0; background: #e74c3c; color: #fff; font-size: 14px;" onclick="playDirectLink()">▶ تشغيل مباشر</button>
+            </div>
+        </div>
+
+        <div class="channel-list-container" id="channelList">
+            <!-- ستظهر القنوات هنا بعد الجلب التلقائي -->
+        </div>
+    </div>
+
+    <script>
+        let currentStreamUrl = '';
+
+        // الجلب التلقائي والمباشر أول ما الصفحة تفتح (بدون تأخير مزعج)
+        window.addEventListener('DOMContentLoaded', (event) => {
+            setTimeout(function() {
+                try {
+                    var savedLink = localStorage.getItem('viberLinkSaved');
+                    if (savedLink !== null) {
+                        document.getElementById('viberLink').value = savedLink;
+                    } else {
+                        document.getElementById('viberLink').value = 'firebase'; 
+                    }
+                    loadFromViber(true); // جلب تلقائي صامت
+                } catch(e) { console.error("Auto-fetch error:", e); }
+            }, 500); // 500 ملي ثانية لضمان تهيئة الفايربيز
+        });
+
+        // التشغيل المباشر من الشريط
+        function playDirectLink() {
+            var url = document.getElementById('directPlayInput').value;
+            if(url.trim() !== '') {
+                loadStream(url.trim());
+            } else {
+                alert('الرجاء إدخال رابط أولاً في مربع التشغيل المباشر!');
+            }
+        }
+
+        // تحديث القناة الحالية (Refresh)
+        function reloadCurrentStream() {
+            if (currentStreamUrl && currentStreamUrl.trim() !== '') {
+                loadStream(currentStreamUrl);
+            } else {
+                alert('لا توجد قناة تعمل حالياً لتحديثها!');
+            }
+        }
+
+        // دالة حفظ المسار
+        function saveViberLink() {
+            var url = document.getElementById('viberLink').value;
+            if(!url.trim()) { alert('الرجاء إدخال الرابط أولاً للحفظ!'); return; }
+            try {
+                localStorage.setItem('viberLinkSaved', url);
+                alert('تم حفظ المسار بنجاح! سيتم استخدامه للجلب التلقائي عند الدخول مرة أخرى.');
+            } catch(e) { alert('حدث خطأ أثناء الحفظ.'); }
+        }
+
+        // رفع القنوات للفايربيز
+        function uploadToFirebase() {
+            var data = document.getElementById('m3u8Data').value;
+            if(!data.trim()) { 
+                alert('مربع النص فارغ! قم بوضع القنوات أولاً لرفعها.'); 
+                return; 
+            }
+            db.ref('playlist').set(data).then(() => {
+                alert('تم رفع القنوات إلى سيرفر الفايربيز بنجاح! 🚀\nدلوقتي الموقع هيشتغل على القنوات دي تلقائي لأي حد يفتحه.');
+            }).catch(err => {
+                alert('حدث خطأ في الرفع! تأكد من أن قواعد البيانات (Rules) في الفايربيز تسمح بالكتابة (write: true).');
+                console.error(err);
+            });
+        }
+
+        // === دوال الفحص العميق للإطارات (Deep Iframe Fetcher) ===
+        function closeIframeModal() {
+            document.getElementById('iframeModal').style.display = 'none';
+        }
+
+        async function fetchCurrentIframe() {
+            if (currentStreamUrl && currentStreamUrl.trim() !== '') {
+                var lowerUrl = currentStreamUrl.toLowerCase();
+                var isVideoExt = lowerUrl.includes('.m3u8') || lowerUrl.includes('.mp4') || lowerUrl.includes('.mkv');
+                
+                if (!isVideoExt) {
+                    var modal = document.getElementById('iframeModal');
+                    var listDiv = document.getElementById('iframeList');
+                    modal.style.display = 'flex';
+                    listDiv.innerHTML = '<div style="text-align:center; color:#ffcc00; font-weight:bold; padding: 20px;">جاري الفحص واستخراج الإطارات الداخلية (Deep Scan)... ⏳<br><span style="font-size:12px;color:#ccc;">جاري تخطي الحماية وسحب الروابط المخفية</span></div>';
+
+                    try {
+                        // المحاولة الأولى بسيرفر بروكسي خام
+                        let proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(currentStreamUrl);
+                        let response = await fetch(proxyUrl);
+                        let htmlCode = await response.text();
+
+                        if(!htmlCode) throw new Error("No content");
+
+                        // فحص جميع صيغ الإطارات المخفية (src و data-src) لتخطي الـ lazy loading
+                        let iframeRegex = /<iframe[^>]+(?:src|data-src)=["']([^"']+)["']/gi;
+                        let match;
+                        let foundIframes = [];
+
+                        while ((match = iframeRegex.exec(htmlCode)) !== null) {
+                            let extractedUrl = match[1].trim();
+                            // استبعاد about:blank والنصوص الفارغة
+                            if (extractedUrl && extractedUrl !== 'about:blank' && !extractedUrl.startsWith('javascript:')) {
+                                // معالجة الروابط اللي ناقصها بروتوكول
+                                if(extractedUrl.startsWith('//')) {
+                                    extractedUrl = 'https:' + extractedUrl;
+                                } else if (extractedUrl.startsWith('/')) {
+                                    let urlObj = new URL(currentStreamUrl);
+                                    extractedUrl = urlObj.origin + extractedUrl;
+                                }
+                                foundIframes.push(extractedUrl);
+                            }
+                        }
+
+                        // إزالة التكرار
+                        foundIframes = [...new Set(foundIframes)];
+
+                        let uiHtml = '';
+                        uiHtml += buildIframeRow('0 (الرابط الأساسي للموقع)', currentStreamUrl);
+
+                        if(foundIframes.length > 0) {
+                            foundIframes.forEach((src, index) => {
+                                uiHtml += buildIframeRow('إطار ' + (index + 1), src);
+                            });
+                        } else {
+                            uiHtml += '<p style="color:#e74c3c; font-size:14px; margin-top:15px; font-weight:bold;">⚠️ لم يتم العثور على إطارات إضافية، نعرض الرابط الأساسي فقط.</p>';
+                        }
+
+                        listDiv.innerHTML = uiHtml;
+
+                    } catch(e) {
+                        console.error("المحاولة الأولى فشلت، جاري تجربة المحاولة الثانية...", e);
+                        // نظام الطوارئ (بروكسي ثاني لو الموقع محمي جداً)
+                        try {
+                           let proxyUrl2 = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(currentStreamUrl);
+                           let response2 = await fetch(proxyUrl2);
+                           let htmlCode2 = await response2.text();
+                           
+                           let iframeRegex2 = /<iframe[^>]+(?:src|data-src)=["']([^"']+)["']/gi;
+                           let match2;
+                           let foundIframes2 = [];
+
+                           while ((match2 = iframeRegex2.exec(htmlCode2)) !== null) {
+                               let extractedUrl2 = match2[1].trim();
+                               if (extractedUrl2 && extractedUrl2 !== 'about:blank' && !extractedUrl2.startsWith('javascript:')) {
+                                   if(extractedUrl2.startsWith('//')) extractedUrl2 = 'https:' + extractedUrl2;
+                                   foundIframes2.push(extractedUrl2);
+                               }
+                           }
+                           
+                           foundIframes2 = [...new Set(foundIframes2)];
+                           let uiHtml2 = buildIframeRow('0 (الرابط الأساسي)', currentStreamUrl);
+                           if(foundIframes2.length > 0) {
+                               foundIframes2.forEach((src, index) => {
+                                   uiHtml2 += buildIframeRow('إطار ' + (index + 1), src);
+                               });
+                           } else {
+                               uiHtml2 += '<p style="color:#e74c3c; font-size:14px; margin-top:15px; font-weight:bold;">⚠️ الموقع يمنع سحب الكود بقوة، نعرض الرابط الأساسي فقط.</p>';
+                           }
+                           listDiv.innerHTML = uiHtml2;
+                        } catch(err2) {
+                            let uiHtml = '<p style="color:#e74c3c; font-size:14px; margin-bottom:15px; font-weight:bold;">⚠️ فشل الفحص العميق (الموقع محمي جداً). نعرض الرابط الأساسي فقط:</p>';
+                            uiHtml += buildIframeRow('0 (الرابط الأساسي)', currentStreamUrl);
+                            listDiv.innerHTML = uiHtml;
+                        }
+                    }
+                } else {
+                    alert("القناة الحالية عبارة عن فيديو مباشر (M3U8/MP4) وليست إطار (Iframe) أو موقع.");
+                }
+            } else {
+                alert("لا توجد قناة تعمل حالياً! قم بتشغيل قناة أولاً.");
+            }
+        }
+
+        // بناء صف الرابط داخل النافذة المنبثقة
+        function buildIframeRow(title, url) {
+            let safeUrl = url.replace(/"/g, '&quot;');
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #1c222d; padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #3a475e;">
+                    <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; direction:ltr; text-align:left; color:#fff; font-size:14px; margin-right:15px;">
+                        <span style="color:#ffcc00; font-weight:900; margin-right:10px; float:right;">${title}:</span> 
+                        ${safeUrl}
+                    </div>
+                    <button class="btn-control" style="background:#28a745; color:white; font-size:12px; padding:8px 15px; flex-shrink:0; border:none;" onclick="copyToClipboard('${safeUrl}')">📋 نسخ اللينك</button>
+                </div>
+            `;
+        }
+
+        // نسخ الرابط (رابط فقط بدون أكواد إضافية)
+        function copyToClipboard(text) {
+            var tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("تم نسخ الرابط بنجاح! 📋");
+        }
+
+        // دوال التالي والسابق
+        function playNext() {
+            var channels = document.querySelectorAll('.channel-bar');
+            if (channels.length === 0) return;
+            var currentIndex = -1;
+            for (var i = 0; i < channels.length; i++) {
+                var onclickAttr = channels[i].getAttribute('onclick');
+                if (onclickAttr && currentStreamUrl !== '' && onclickAttr.includes(currentStreamUrl)) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            var nextIndex = currentIndex + 1;
+            if (nextIndex >= channels.length) nextIndex = 0; 
+            channels[nextIndex].click();
+        }
+
+        function playPrev() {
+            var channels = document.querySelectorAll('.channel-bar');
+            if (channels.length === 0) return;
+            var currentIndex = -1;
+            for (var i = 0; i < channels.length; i++) {
+                var onclickAttr = channels[i].getAttribute('onclick');
+                if (onclickAttr && currentStreamUrl !== '' && onclickAttr.includes(currentStreamUrl)) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            var prevIndex = currentIndex - 1;
+            if (prevIndex < 0) prevIndex = channels.length - 1; 
+            channels[prevIndex].click();
+        }
+
+        // فتح في نافذة خارجية
+        function openExternal() {
+            if (currentStreamUrl && currentStreamUrl.trim() !== '') {
+                window.open(currentStreamUrl, '_blank');
+            } else {
+                alert('لا توجد قناة تعمل حالياً لفتحها في نافذة جديدة!');
+            }
+        }
+
+        // دوال التحكم في المشغل
+        function closePlayer() {
+            var video = document.getElementById('video');
+            var iframe = document.getElementById('iframe-player');
+            var loader = document.getElementById('loader');
+            
+            if (hls) { hls.detachMedia(); }
+            video.pause();
+            video.src = '';
+            iframe.src = '';
+            currentStreamUrl = ''; 
+            
+            video.style.display = 'none';
+            iframe.style.display = 'none';
+            loader.style.display = 'none';
+        }
+
+        let currentRotation = 0;
+        function rotatePlayer() {
+            currentRotation += 90;
+            if (currentRotation >= 360) currentRotation = 0;
+            var transformVal = 'rotate(' + currentRotation + 'deg)';
+            
+            document.getElementById('video').style.transform = transformVal;
+            document.getElementById('iframe-player').style.transform = transformVal;
+        }
+
+        function toggleFullScreen() {
+            var wrapper = document.getElementById('videoWrapper');
+            if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                if (wrapper.requestFullscreen) { wrapper.requestFullscreen(); }
+                else if (wrapper.msRequestFullscreen) { wrapper.msRequestFullscreen(); }
+                else if (wrapper.mozRequestFullScreen) { wrapper.mozRequestFullScreen(); }
+                else if (wrapper.webkitRequestFullscreen) { wrapper.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT); }
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+                else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            }
+        }
+
+        // دوال لوحة التحكم وفتح الفولدرات
+        function openDashboard() { document.getElementById('dashboardModal').style.display = 'flex'; }
+        function closeDashboard() { document.getElementById('dashboardModal').style.display = 'none'; }
+        function toggleFolder(el) { el.classList.toggle('active'); }
+
+        // جلب الملف من الفايربيز أو رابط خارجي
+        function loadFromViber(isAuto = false) {
+            var url = document.getElementById('viberLink').value;
+            
+            if(!url.trim()) { 
+                if(!isAuto) alert('الرجاء إدخال الرابط أو firebase أولاً!'); 
+                return; 
+            }
+
+            if(url.trim().toLowerCase() === 'firebase') {
+                db.ref('playlist').once('value').then((snapshot) => {
+                    var data = snapshot.val();
+                    if(data) {
+                        document.getElementById('m3u8Data').value = data;
+                        importM3u8(isAuto);
+                        if(!isAuto) alert('تم جلب القنوات من سيرفر الفايربيز بنجاح!');
+                    } else {
+                        if(!isAuto) alert('سيرفر الفايربيز فارغ! قم برفع القنوات من خلال زر "رفع وتحديث سيرفر فايربيز".');
+                    }
+                }).catch(err => {
+                    if(!isAuto) alert('خطأ في الاتصال بسيرفر الفايربيز!');
+                    console.error(err);
+                });
+                return;
+            }
+
+            fetch(url).then(response => {
+                if(!response.ok) throw new Error('خطأ');
+                return response.text();
+            }).then(data => {
+                document.getElementById('m3u8Data').value = data;
+                importM3u8(isAuto);
+                if(!isAuto) alert('تم جلب القنوات من الرابط الخارجي بنجاح!');
+            }).catch(err => {
+                if(!isAuto) alert('حصلت مشكلة في الجلب! تأكد من صحة الرابط.');
+            });
+        }
+
+        function handleFileUpload(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('m3u8Data').value = e.target.result;
+                importM3u8(false);
+                document.getElementById('fileUpload').value = ''; 
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadM3uFile() {
+            exportM3u8(); 
+            var data = document.getElementById('m3u8Data').value;
+            if(!data.trim() || data.trim() === "#EXTM3U") { alert('لا توجد قنوات لحفظها!'); return; }
+            var blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'عمر_سبورت_قنوات.m3u';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function downloadFullHTML() {
+            var dashboard = document.getElementById('dashboardModal');
+            var prevDisplay = dashboard.style.display;
+            dashboard.style.display = 'none';
+            var htmlContent = "<!DOCTYPE html>\n<html lang=\"ar\" dir=\"rtl\">\n" + document.documentElement.innerHTML + "\n</html>";
+            var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'عمر_سبورت_كامل.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            dashboard.style.display = prevDisplay; 
+            alert('تم حفظ الموقع بنجاح!');
+        }
+
+        // الاستيراد مع ميزة وضع (القنوات المحددة)
+        function importM3u8(isAuto = false) {
+            var data = document.getElementById('m3u8Data').value;
+            if(!data.trim()) { 
+                if(!isAuto) alert('الرجاء إدخال قنوات!'); 
+                return; 
+            }
+            var lines = data.split('\n');
+            var container = document.getElementById('channelList');
+            var channelsByFolder = {};
+            var currentFolder = "القنوات العامة";
+            var currentName = "";
+
+            for(var i=0; i<lines.length; i++) {
+                var line = lines[i].trim();
+                if(!line) continue;
+                
+                if(line.toUpperCase().startsWith('#EXTINF')) {
+                    var groupMatch = line.match(/group-title="([^"]+)"/i) || line.match(/group-title=([^,]+)/i);
+                    currentFolder = groupMatch ? groupMatch[1].trim() : "القنوات العامة";
+                    var commaIndex = line.lastIndexOf(',');
+                    currentName = (commaIndex > -1) ? line.substring(commaIndex+1).trim() : "قناة جديدة";
+                } 
+                else if (line.startsWith('http') || line.startsWith('rtmp') || line.startsWith('ftp') || line.includes('<iframe')) {
+                    var link = line;
+                    var name = currentName || "قناة جديدة";
+                    if(!channelsByFolder[currentFolder]) channelsByFolder[currentFolder] = [];
+                    channelsByFolder[currentFolder].push({name: name, url: link});
+                    currentName = ""; 
+                }
+                else if (line.includes(',')) {
+                    var parts = line.split(',');
+                    if(parts.length >= 3) {
+                        currentFolder = parts[0].trim();
+                        currentName = parts[1].trim();
+                        var link = parts.slice(2).join(',').trim();
+                        if(!channelsByFolder[currentFolder]) channelsByFolder[currentFolder] = [];
+                        channelsByFolder[currentFolder].push({name: currentName, url: link});
+                    } else {
+                        currentName = parts[0].trim();
+                        var link = parts[1].trim();
+                        currentFolder = "القنوات العامة";
+                        if(!channelsByFolder[currentFolder]) channelsByFolder[currentFolder] = [];
+                        channelsByFolder[currentFolder].push({name: currentName, url: link});
+                    }
+                    currentName = "";
+                }
+            }
+
+            var htmlContent = '';
+            
+            var directFolders = ["القنوات المحددة", "المقاطع المحددة"];
+            directFolders.forEach(function(dName) {
+                if(channelsByFolder[dName]) {
+                    channelsByFolder[dName].forEach(function(ch) {
+                        var safeUrl = ch.url.replace(/'/g, "\\'");
+                        htmlContent += '<div class="channel-bar" onclick="loadStream(\'' + safeUrl + '\'); event.stopPropagation();">';
+                        htmlContent += '<span class="channel-name">' + ch.name + '</span><div class="live-indicator"><div class="live-dot"></div> Live</div>';
+                        htmlContent += '</div>';
+                    });
+                    delete channelsByFolder[dName]; 
+                }
+            });
+
+            for(var folder in channelsByFolder) {
+                var folderId = 'folder-' + Math.floor(Math.random() * 10000000);
+                htmlContent += '<div class="folder" id="' + folderId + '">';
+                htmlContent += '<div class="folder-header" onclick="toggleFolder(this.parentElement)"><span>📁 ' + folder + '</span><span class="folder-icon">▼</span></div>';
+                htmlContent += '<div class="folder-content">';
+                
+                channelsByFolder[folder].forEach(function(ch) {
+                    var safeUrl = ch.url.replace(/'/g, "\\'");
+                    htmlContent += '<div class="channel-bar" onclick="loadStream(\'' + safeUrl + '\'); event.stopPropagation();">';
+                    htmlContent += '<span class="channel-name">' + ch.name + '</span><div class="live-indicator"><div class="live-dot"></div> Live</div>';
+                    htmlContent += '</div>';
+                });
+                
+                htmlContent += '</div></div>';
+            }
+
+            container.innerHTML = htmlContent; 
+            
+            if(!isAuto) {
+                alert('تم الاستيراد والتحديث بنجاح!');
+                closeDashboard();
+            }
+        }
+
+        // التصدير
+        function exportM3u8() {
+            var exportData = ["#EXTM3U"];
+            
+            var directChannels = document.querySelectorAll('#channelList > .channel-bar');
+            directChannels.forEach(function(channel) {
+                var name = channel.querySelector('.channel-name').textContent;
+                var onclickAttr = channel.getAttribute('onclick');
+                if(onclickAttr) {
+                    var match = onclickAttr.match(/'([^']+)'/);
+                    if(match && match[1]) {
+                        exportData.push('#EXTINF:-1 group-title="القنوات المحددة",' + name);
+                        exportData.push(match[1]);
+                    }
+                }
+            });
+
+            var folders = document.querySelectorAll('.folder');
+            folders.forEach(function(folder) {
+                var folderName = folder.querySelector('.folder-header span').textContent.replace('📁', '').trim();
+                var channels = folder.querySelectorAll('.channel-bar');
+                channels.forEach(function(channel) {
+                    var name = channel.querySelector('.channel-name').textContent;
+                    var onclickAttr = channel.getAttribute('onclick');
+                    if(onclickAttr) {
+                        var match = onclickAttr.match(/'([^']+)'/);
+                        if(match && match[1]) {
+                            exportData.push('#EXTINF:-1 group-title="' + folderName + '",' + name);
+                            exportData.push(match[1]);
+                        }
+                    }
+                });
+            });
+            document.getElementById('m3u8Data').value = exportData.join('\n');
+        }
+
+        // المشغل
+        var video = document.getElementById('video');
+        var iframe = document.getElementById('iframe-player');
+        var soundBtn = document.getElementById('soundBtn');
+        var loader = document.getElementById('loader');
+        var hls = new Hls({ maxBufferLength: 20, liveSyncDurationCount: 3, lowLatencyMode: true });
+
+        function loadStream(url) {
+            document.getElementById('directPlayInput').value = ''; // تصفير شريط التشغيل المباشر
+            currentStreamUrl = url; 
+
+            loader.style.display = 'flex';
+            soundBtn.style.display = 'block'; 
+            
+            currentRotation = 0;
+            video.style.transform = 'rotate(0deg)';
+            iframe.style.transform = 'rotate(0deg)';
+
+            if (hls) { hls.detachMedia(); }
+            video.pause();
+            video.src = '';
+            iframe.src = '';
+            video.style.display = 'none';
+            iframe.style.display = 'none';
+
+            if(url.toLowerCase().includes('<iframe')) {
+                var match = url.match(/src=["'](.*?)["']/);
+                if(match && match[1]) url = match[1];
+            }
+
+            var lowerUrl = url.toLowerCase();
+            var isVideoExt = lowerUrl.includes('.m3u8') || lowerUrl.includes('.mp4') || lowerUrl.includes('.mkv');
+            
+            if (isVideoExt) {
+                video.style.display = 'block';
+                video.muted = true;
+                
+                if (lowerUrl.includes('.m3u8')) {
+                    if (Hls.isSupported()) {
+                        hls.loadSource(url);
+                        hls.attachMedia(video);
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = url;
+                    }
+                } else {
+                    video.src = url;
+                    video.load();
+                    video.play().catch(function(e){});
+                }
+            } else {
+                iframe.style.display = 'block';
+                iframe.src = url;
+                soundBtn.style.display = 'none'; 
+                
+                iframe.onload = function() { loader.style.display = 'none'; };
+                setTimeout(function(){ loader.style.display = 'none'; }, 3000);
+            }
+        }
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function() { video.play(); });
+        video.addEventListener('playing', function() { loader.style.display = 'none'; });
+        video.addEventListener('waiting', function() { loader.style.display = 'flex'; });
+        video.addEventListener('error', function() { loader.style.display = 'none'; });
+
+        soundBtn.addEventListener('click', function() {
+            video.muted = false;
+            soundBtn.style.display = 'none';
+        });
+
+    </script>
+</body>
+</html>
