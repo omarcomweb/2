@@ -2,16 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <!-- إجبار المتصفح على عرض نسخة الديسكتوب -->
     <meta name="viewport" content="width=1124, user-scalable=yes">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- مكتبات HLS و Firebase -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <title>.</title>
+    <title>..</title>
     <style>
         :root {
             --primary-color: #ffcc00; /* اللون الأساسي المتغير */
@@ -116,13 +114,13 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="manifest" href="./manifest.json?v=v1783895977156">
-    <meta name="theme-color" content="#780fa9">
-    <link rel="apple-touch-icon" href="./icon-192.png?v=v1783895977156">
+    <link rel="manifest" href="./manifest.json?v=v1783898381417">
+    <meta name="theme-color" content="#611593">
+    <link rel="apple-touch-icon" href="./icon-192.png?v=v1783898381417">
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js?v=v1783895977156')
+          navigator.serviceWorker.register('./sw.js?v=v1783898381417')
             .then(reg => console.log('SW Registered'))
             .catch(err => console.log('SW Failed', err));
         });
@@ -131,7 +129,6 @@
 </head>
 <body>
 
-    <!-- إعدادات الفايربيز -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBtIkF-UhkeFa-cxutgJAQpR7K_IjKxloc",
@@ -144,7 +141,6 @@
         const db = firebase.database();
     </script>
 
-    <!-- الداشبورد الخارقة المدمجة -->
     <div class="dashboard" id="main-dashboard">
         <div class="top-close-bar">
             <button class="btn btn-danger" onclick="window.closePlayer()">✖ إغلاق المشغل</button>
@@ -228,7 +224,6 @@
         </div>
     </div>
 
-    <!-- نافذة (إدارة وتحديد) المنبثقة -->
     <div class="modal-overlay" id="multiManageModal" style="display: none; z-index: 10001;">
         <div class="modal-content edit-modal-content">
             <h3 style="color:#3498db;">🛠️ خيارات التحديد والتعديل</h3>
@@ -273,7 +268,6 @@
         </div>
     </div>
 
-    <!-- نوافذ الإضافة والاستيراد المخفية -->
     <div class="modal-overlay" id="addUrlModal" style="display: none;">
         <div class="modal-content">
             <h3 style="color:#00a8ff;">🔗 إضافة قناة / استيراد رابط M3U</h3>
@@ -291,9 +285,7 @@
         </div>
     </div>
     
-    <textarea id="m3u8Data" style="display:none;"></textarea> <!-- مخفي للاستخدام البرمجي -->
-
-    <div class="container" id="mainContainer">
+    <textarea id="m3u8Data" style="display:none;"></textarea> <div class="container" id="mainContainer">
         <div class="video-wrapper" id="videoWrapper">
             <div id="loader" class="loader-overlay"><div class="spinner"></div></div>
             <div class="sound-btn" id="soundBtn">🔊 اضغط لتفعيل الصوت</div>
@@ -312,6 +304,12 @@
                     <button class="btn" style="background: #0088cc; color: white; border:none; padding:6px 15px; border-radius:50px; font-weight:bold; margin:0;" onclick="fetchCurrentIframe()">🔗 جلب Iframe</button>
                     <button class="btn-nav" onclick="playPrev()" title="السابقة">السابق ⏮</button>
                     
+                    <button class="btn-control" onclick="reloadCurrentStream()" title="تحديث القناة (إعادة تحميل)">🔄</button>
+                    <button class="btn-control" onclick="openExternal()" title="فتح في نافذة خارجية">↗</button>
+                    <button class="btn-control" onclick="closePlayer()" title="إغلاق المشغل">✖</button>
+                    <button class="btn-control" onclick="rotatePlayer()" title="تدوير الشاشة">↻</button>
+                    <button class="btn-control" onclick="toggleFullScreen()" title="تكبير الشاشة (Fullscreen)">⛶</button>
+                    
                     <button class="btn" style="background: #8e44ad; color:white; border:none; padding:6px 15px; border-radius:8px; margin:0;" onclick="window.openMultiManageModal()">🛠️ إدارة وتحديد</button>
                     <button class="btn" style="background: #e50914; color:white; border:none; padding:6px 15px; border-radius:8px; margin:0;" onclick="window.toggleDashboard()">⚙️ Dashboard</button>
                     <div class="live-status-bar"><div class="live-dot"></div><span>بث مباشر</span></div>
@@ -325,8 +323,7 @@
         </div>
 
         <div class="channel-list-container" id="channelList">
-            <!-- سيتم الجلب هنا -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -337,14 +334,14 @@
         let popupsBlocked = true;
         let autoSwitchInterval = null;
 
-        // الجلب التلقائي (Firebase)
+        // الجلب التلقائي (Firebase) بعد التأكد من تعديل الـ snapshot
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 try {
                     var savedLink = localStorage.getItem('viberLinkSaved');
                     document.getElementById('viberLink').value = savedLink ? savedLink : 'firebase'; 
                     window.loadFromViber(true); 
-                } catch(e) {}
+                } catch(e) { console.error("Auto-fetch error:", e); }
             }, 500); 
         });
 
@@ -511,7 +508,11 @@
         window.loadFromViber = window.doLoadFromFirebase = function(isAuto = false) {
             var url = document.getElementById('viberLink').value; if(!url.trim()) return;
             if(url.trim().toLowerCase() === 'firebase') {
-                db.ref('playlist').once('value').then(snap => { var d = snapshot.val(); if(d) { document.getElementById('m3u8Data').value = d; importM3u8(isAuto); } }); return;
+                db.ref('playlist').once('value').then(snapshot => { 
+                    var d = snapshot.val(); 
+                    if(d) { document.getElementById('m3u8Data').value = d; importM3u8(isAuto); } 
+                }).catch(e => console.error("Firebase error", e)); 
+                return;
             }
             fetch(url).then(r=>r.text()).then(d=>{ document.getElementById('m3u8Data').value=d; importM3u8(isAuto); }).catch(e=>{});
         }
@@ -549,35 +550,22 @@
             });
             var html = '';
             ["القنوات المحددة","المقاطع المحددة"].forEach(n => {
-                if(folders[n]) { folders[n].forEach(c => { html+=`<div class="channel-bar" onclick="loadStream('${c.u.replace(/'/g,"\\'")}'); event.stopPropagation();"><input type="checkbox" class="channel-check" onclick="event.stopPropagation()"><span class="channel-name" contenteditable="${isEditMode}">${c.n}</span><div class="live-indicator"><div class="live-dot"></div> Live</div></div>`; }); delete folders[n]; }
+                if(folders[n]) { folders[n].forEach(c => { html+=`<div class="channel-bar" onclick="loadStream('${c.u.replace(/'/g,"\\'")}')"><input type="checkbox" class="channel-check" onclick="event.stopPropagation()"><span class="channel-name" contenteditable="${isEditMode}">${c.n}</span><div class="live-indicator"><div class="live-dot"></div> Live</div></div>`; }); delete folders[n]; }
             });
             for(var f in folders) {
                 html+=`<div class="folder" id="f-${Math.random().toString(36).substr(2,9)}"><div class="folder-header" onclick="toggleFolder(this.parentElement)"><span contenteditable="${isEditMode}">📁 ${f}</span><span class="folder-icon">▼</span></div><div class="folder-content">`;
-                folders[f].forEach(c => { html+=`<div class="channel-bar" onclick="loadStream('${c.u.replace(/'/g,"\\'")}'); event.stopPropagation();"><input type="checkbox" class="channel-check" onclick="event.stopPropagation()"><span class="channel-name" contenteditable="${isEditMode}">${c.n}</span><div class="live-indicator"><div class="live-dot"></div> Live</div></div>`; });
+                folders[f].forEach(c => { html+=`<div class="channel-bar" onclick="loadStream('${c.u.replace(/'/g,"\\'")}')"><input type="checkbox" class="channel-check" onclick="event.stopPropagation()"><span class="channel-name" contenteditable="${isEditMode}">${c.n}</span><div class="live-indicator"><div class="live-dot"></div> Live</div></div>`; });
                 html+='</div></div>';
             }
             container.innerHTML = html;
             if(isSelectMode) container.classList.add('select-mode-active');
             document.querySelectorAll('.channel-bar').forEach(ch => { if(ch.getAttribute('onclick') && ch.getAttribute('onclick').includes(currentStreamUrl) && currentStreamUrl) ch.classList.add('active-channel'); });
-            if(!isAuto) alert("تم تحديث القنوات بنجاح!");
-        }
-
-        window.exportSelectedM3U = function() {
-            var checked = document.querySelectorAll('.channel-check:checked'); if(checked.length === 0) { alert("حدد قنوات أولاً!"); return; }
-            var exportData = ["#EXTM3U"];
-            checked.forEach(chk => { var bar = chk.closest('.channel-bar'); var name = bar.querySelector('.channel-name').textContent; var m = bar.getAttribute('onclick').match(/'([^']+)'/); if(m){ var folder = bar.closest('.folder'); var fn = folder ? folder.querySelector('span').textContent.replace('📁','').trim() : "محدد"; exportData.push('#EXTINF:-1 group-title="'+fn+'",'+name+'\n'+m[1]); } });
-            var b = new Blob([exportData.join('\n')], {type:'text/plain'}); var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='قنوات_محددة.m3u'; a.click();
-        }
-        window.copySelectedM3U = function() {
-            var checked = document.querySelectorAll('.channel-check:checked'); if(checked.length === 0) { alert("حدد قنوات أولاً!"); return; }
-            var exportData = ["#EXTM3U"];
-            checked.forEach(chk => { var bar = chk.closest('.channel-bar'); var name = bar.querySelector('.channel-name').textContent; var m = bar.getAttribute('onclick').match(/'([^']+)'/); if(m){ var folder = bar.closest('.folder'); var fn = folder ? folder.querySelector('span').textContent.replace('📁','').trim() : "محدد"; exportData.push('#EXTINF:-1 group-title="'+fn+'",'+name+'\n'+m[1]); } });
-            copyToClipboard(exportData.join('\n'));
+            if(!isAuto) alert("تم تحديث القنوات!");
         }
 
         function exportM3u8() {
             var exp=["#EXTM3U"];
-            document.querySelectorAll('#channelList > .channel-bar').forEach(c=>{var n=c.querySelector('.channel-name').textContent; var m=c.getAttribute('onclick').match(/'([^']+)'/); if(m)exp.push('#EXTINF:-1 group-title="القنوات المحددة",'+n+'\n'+m[1]);});
+            document.querySelectorAll('#channelList > .channel-bar').forEach(c=>{var n=c.querySelector('.channel-name').textContent; var m=c.getAttribute('onclick').match(/'([^']+)'/); if(m)exp.push('#EXTINF:-1 group-title="المحددة",'+n+'\n'+m[1]);});
             document.querySelectorAll('.folder').forEach(f=>{var fn=f.querySelector('span').textContent.replace('📁','').trim(); f.querySelectorAll('.channel-bar').forEach(c=>{var n=c.querySelector('.channel-name').textContent; var m=c.getAttribute('onclick').match(/'([^']+)'/); if(m)exp.push('#EXTINF:-1 group-title="'+fn+'",'+n+'\n'+m[1]);});});
             document.getElementById('m3u8Data').value=exp.join('\n');
         }
@@ -589,13 +577,13 @@
         window.fetchCurrentIframe = async function() {
             if(!currentStreamUrl){ alert("شغل قناة أولاً"); return; }
             if(currentStreamUrl.toLowerCase().includes('.m3u8') || currentStreamUrl.toLowerCase().includes('.mp4')) { alert("هذا فيديو وليس إطار!"); return; }
-            document.getElementById('iframeModal').style.display='flex'; var list = document.getElementById('iframeList'); list.innerHTML='<div style="color:var(--primary-color); text-align:center;">جاري البحث العميق وتخطي الحماية... ⏳</div>';
+            document.getElementById('iframeModal').style.display='flex'; var list = document.getElementById('iframeList'); list.innerHTML='<div style="color:var(--primary-color); text-align:center;">جاري البحث عن الإطارات...</div>';
             var found = [];
             try { let r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(currentStreamUrl)); found=extractUrls(await r.text(), currentStreamUrl); } catch(e){}
             if(found.length==0) try { let r=await fetch('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(currentStreamUrl)); found=extractUrls(await r.text(), currentStreamUrl); } catch(e){}
             if(found.length==0) try { let r=await fetch('https://corsproxy.io/?'+encodeURIComponent(currentStreamUrl)); found=extractUrls(await r.text(), currentStreamUrl); } catch(e){}
             
-            var ui = buildIframeRow('الرابط الأساسي', currentStreamUrl);
+            var ui = buildIframeRow('الأساسي', currentStreamUrl);
             found.forEach((u,i) => ui+=buildIframeRow('إطار '+(i+1), u));
             list.innerHTML = ui;
         }
@@ -604,28 +592,35 @@
             while((m=rx.exec(html))!==null){ let u=m[1].trim(); if(u&&u!=='about:blank'&&!u.startsWith('java')){ if(u.startsWith('//'))u='https:'+u; else if(u.startsWith('/')){let ob=new URL(base);u=ob.origin+u;} ex.push(u); } }
             return [...new Set(ex)];
         }
-        function buildIframeRow(t,u) { let s=u.replace(/"/g,'&quot;'); return `<div style="display:flex; justify-content:space-between; background:#1c222d; padding:10px; margin-bottom:10px; border-radius:8px;"><span style="color:#fff; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;"><b style="color:var(--primary-color)">${t}:</b> ${s}</span><button class="btn" style="width:auto; margin:0; border-color:#28a745; color:#28a745;" onclick="copyToClipboard('${s}')">نسخ اللينك</button></div>`; }
-        function copyToClipboard(t) { var i=document.createElement("input"); i.value=t; document.body.appendChild(i); i.select(); document.execCommand("copy"); document.body.removeChild(i); alert("تم النسخ بنجاح! 📋"); }
+        function buildIframeRow(t,u) { let s=u.replace(/"/g,'&quot;'); return `<div style="display:flex; justify-content:space-between; background:#1c222d; padding:10px; margin-bottom:10px; border-radius:8px;"><span style="color:#fff; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;"><b style="color:var(--primary-color)">${t}:</b> ${s}</span><button class="btn" style="width:auto; margin:0; border-color:#28a745; color:#28a745;" onclick="copyToClipboard('${s}')">نسخ</button></div>`; }
+        function copyToClipboard(t) { var i=document.createElement("input"); i.value=t; document.body.appendChild(i); i.select(); document.execCommand("copy"); document.body.removeChild(i); alert("تم النسخ!"); }
 
-        // ====================== المشغل والتحكم ======================
+        // ====================== المشغل ======================
         var video = document.getElementById('video'); var iframe = document.getElementById('iframe-player'); var loader = document.getElementById('loader'); var hls = new Hls({maxBufferLength:20, liveSyncDurationCount:3, lowLatencyMode:true});
         window.loadStream = function(url) {
-            document.getElementById('directPlayInput').value=''; currentStreamUrl=url; document.getElementById('videoWrapper').style.height='60vh';
-            document.querySelectorAll('.channel-bar').forEach(c=>{ c.classList.remove('active-channel'); if(c.getAttribute('onclick')&&url!==''&&c.getAttribute('onclick').includes(url)) c.classList.add('active-channel'); });
+            document.getElementById('videoWrapper').style.height = '60vh'; 
+            document.getElementById('directPlayInput').value = ''; currentStreamUrl = url; 
+            document.querySelectorAll('.channel-bar').forEach(ch => { ch.classList.remove('active-channel'); if (ch.getAttribute('onclick') && url !== '' && ch.getAttribute('onclick').includes(url)) ch.classList.add('active-channel'); });
 
-            loader.style.display='flex'; document.getElementById('soundBtn').style.display='block'; currentRotation=0; video.style.transform='rotate(0deg)'; iframe.style.transform='rotate(0deg)';
-            if(hls)hls.detachMedia(); video.pause(); video.src=''; iframe.src=''; video.style.display='none'; iframe.style.display='none';
+            loader.style.display = 'flex'; document.getElementById('soundBtn').style.display='block'; currentRotation = 0; video.style.transform='rotate(0deg)'; iframe.style.transform='rotate(0deg)';
+            if (hls) hls.detachMedia(); video.pause(); video.src = ''; iframe.src = ''; video.style.display = 'none'; iframe.style.display = 'none';
+
             if(url.includes('<iframe')){ var m=url.match(/src=["'](.*?)["']/); if(m)url=m[1]; }
             var isV = url.toLowerCase().includes('.m3u8') || url.toLowerCase().includes('.mp4');
-            if(isV) { video.style.display='block'; video.muted=true; if(url.toLowerCase().includes('.m3u8')){if(Hls.isSupported()){hls.loadSource(url);hls.attachMedia(video);}else video.src=url;}else{video.src=url;video.load();video.play().catch(e=>{});} }
-            else { updateIframeAttrs(); iframe.style.display='block'; iframe.src=url; document.getElementById('soundBtn').style.display='none'; iframe.onload=function(){loader.style.display='none';}; setTimeout(()=>{loader.style.display='none';},3000); }
+            
+            if (isV) {
+                video.style.display='block'; video.muted=true;
+                if (url.toLowerCase().includes('.m3u8')) { if (Hls.isSupported()) { hls.loadSource(url); hls.attachMedia(video); } else if (video.canPlayType('application/vnd.apple.mpegurl')) video.src=url; } else { video.src=url; video.load(); video.play().catch(e=>{}); }
+            } else {
+                updateIframeAttrs(); iframe.style.display='block'; iframe.src=url; document.getElementById('soundBtn').style.display='none'; iframe.onload=function(){loader.style.display='none';}; setTimeout(function(){ loader.style.display='none'; }, 3000);
+            }
         }
-        hls.on(Hls.Events.MANIFEST_PARSED, function(){video.play();}); video.addEventListener('playing', ()=>{loader.style.display='none';}); video.addEventListener('waiting', ()=>{loader.style.display='flex';}); video.addEventListener('error', ()=>{loader.style.display='none';});
+        hls.on(Hls.Events.MANIFEST_PARSED, function(){video.play();}); video.addEventListener('playing', ()=>{loader.style.display='none';}); video.addEventListener('waiting', ()=>{loader.style.display='flex';});
         document.getElementById('soundBtn').addEventListener('click', function(){ video.muted=false; this.style.display='none'; });
 
         window.playNext = function() { var cs=document.querySelectorAll('.channel-bar'); if(cs.length==0)return; var idx=-1; for(var i=0;i<cs.length;i++){if(cs[i].getAttribute('onclick')&&cs[i].getAttribute('onclick').includes(currentStreamUrl)){idx=i;break;}} var n=idx+1; if(n>=cs.length)n=0; cs[n].click(); }
         window.playPrev = function() { var cs=document.querySelectorAll('.channel-bar'); if(cs.length==0)return; var idx=-1; for(var i=0;i<cs.length;i++){if(cs[i].getAttribute('onclick')&&cs[i].getAttribute('onclick').includes(currentStreamUrl)){idx=i;break;}} var p=idx-1; if(p<0)p=cs.length-1; cs[p].click(); }
-        window.openExternal = function() { if(currentStreamUrl) window.open(currentStreamUrl,'_blank'); else alert("لا توجد قناة!"); }
+        window.openExternal = function() { if(currentStreamUrl) window.open(currentStreamUrl,'_blank'); }
         window.closePlayer = window.closePlayerScreen = function() { if(hls)hls.detachMedia(); video.pause(); video.src=''; iframe.src=''; currentStreamUrl=''; document.querySelectorAll('.channel-bar').forEach(c=>c.classList.remove('active-channel')); video.style.display='none'; iframe.style.display='none'; loader.style.display='none'; document.getElementById('videoWrapper').style.height='0'; }
         window.rotatePlayer = function() { currentRotation+=90; if(currentRotation>=360)currentRotation=0; var t='rotate('+currentRotation+'deg)'; video.style.transform=t; iframe.style.transform=t; }
         window.toggleFullScreen = function() { var w=document.getElementById('videoWrapper'); if(!document.fullscreenElement){if(w.requestFullscreen)w.requestFullscreen();else if(w.webkitRequestFullscreen)w.webkitRequestFullscreen();}else{if(document.exitFullscreen)document.exitFullscreen();} }
