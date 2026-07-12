@@ -2,16 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <!-- إجبار المتصفح على عرض نسخة الديسكتوب -->
-    <meta name="viewport" content="width=1024, user-scalable=yes">
+    <meta name="viewport" content="width=1124, user-scalable=yes">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <!-- مكتبات HLS و Firebase -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <title>.</title>
+    <title>>>></title>
     <style>
         body { 
             -webkit-user-select: none; -ms-user-select: none; user-select: none;
@@ -110,12 +108,12 @@
     </style>
 
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#9816a2">
+    <meta name="theme-color" content="#870e90">
     <link rel="apple-touch-icon" href="./icon-192.png">
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js?v=3983191631783858506654')
+          navigator.serviceWorker.register('./sw.js?v=5938529811783860969056')
             .then(reg => {
               console.log('SW Registered');
               reg.update();
@@ -127,7 +125,6 @@
 </head>
 <body oncontextmenu="return false;">
 
-    <!-- إعدادات الفايربيز -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBtIkF-UhkeFa-cxutgJAQpR7K_IjKxloc",
@@ -142,7 +139,6 @@
         const db = firebase.database();
     </script>
 
-    <!-- لوحة التحكم (الداشبورد) -->
     <div class="modal-overlay" id="dashboardModal" style="display: none;">
         <div class="modal-content">
             <h2 style="font-size: 24px;">⚙️ لوحة التحكم (الإعدادات والقنوات)</h2>
@@ -178,27 +174,22 @@
         </div>
     </div>
 
-    <!-- نافذة جلب الإطارات المنبثقة -->
     <div class="modal-overlay" id="iframeModal" style="display: none; z-index: 10000;">
         <div class="modal-content" style="max-width: 650px;">
             <h2 style="font-size: 22px;">🔗 الإطارات المستخرجة (Deep Scan)</h2>
             <div id="iframeList" class="iframe-list-box">
-                <!-- الروابط ستظهر هنا -->
-            </div>
+                </div>
             <button class="btn-watch" style="background: #ff0000; margin-bottom: 0;" onclick="closeIframeModal()">إغلاق</button>
         </div>
     </div>
 
     <div class="container">
-        <!-- منطقة الفيديو -->
         <div class="video-wrapper" id="videoWrapper">
             <div id="loader" class="loader-overlay"><div class="spinner"></div></div>
             <div class="sound-btn" id="soundBtn">🔊 اضغط لتفعيل الصوت</div>
             
-            <!-- مشغل الفيديو الأساسي -->
             <video id="video" autoplay muted playsinline controls style="display: block; transition: transform 0.3s ease;"></video>
             
-            <!-- مشغل الإطارات (Iframes) والمواقع -->
             <iframe id="iframe-player" allow="encrypted-media; autoplay" allowfullscreen style="display: none; transition: transform 0.3s ease;"></iframe>
         </div>
 
@@ -206,14 +197,12 @@
             <header class="header">
                 <div class="brand">عمر سبورت</div>
                 <div class="top-controls">
-                    <!-- زراير التنقل (التالي، جلب الآي فريم، السابق) -->
                     <button class="btn-nav" onclick="playNext()" title="القناة التالية">التالي ⏭</button>
                     
                     <button class="btn-control" style="background: #0088cc; color: white;" onclick="fetchCurrentIframe()" title="فحص وجلب جميع الإطارات من القناة">🔗 جلب Iframe</button>
                     
                     <button class="btn-nav" onclick="playPrev()" title="القناة السابقة">السابق ⏮</button>
                     
-                    <!-- باقي زراير التحكم -->
                     <button class="btn-control" onclick="reloadCurrentStream()" title="تحديث القناة (إعادة تحميل)">🔄</button>
                     <button class="btn-control" onclick="openExternal()" title="فتح في نافذة خارجية">↗</button>
                     <button class="btn-control" onclick="closePlayer()" title="إغلاق المشغل">✖</button>
@@ -225,7 +214,6 @@
                 </div>
             </header>
             
-            <!-- شريط التشغيل المباشر الجديد -->
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <input type="text" id="directPlayInput" class="dashboard-input" style="background: #1c222d; border-color: #3a475e;" placeholder="أدخل رابط مباشر (M3U8 / MP4 / موقع إطار) لتشغيله فوراً على المشغل...">
                 <button class="btn-join" style="width: auto; padding: 10px 25px; margin: 0; background: #e74c3c; color: #fff; font-size: 14px;" onclick="playDirectLink()">▶ تشغيل مباشر</button>
@@ -233,8 +221,7 @@
         </div>
 
         <div class="channel-list-container" id="channelList">
-            <!-- ستظهر القنوات هنا بعد الجلب التلقائي -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -299,7 +286,7 @@
             });
         }
 
-        // === دوال الفحص العميق للإطارات (Deep Iframe Fetcher) ===
+        // === دوال الفحص العميق للإطارات المطورة بتخطي أقوى ===
         function closeIframeModal() {
             document.getElementById('iframeModal').style.display = 'none';
         }
@@ -313,94 +300,80 @@
                     var modal = document.getElementById('iframeModal');
                     var listDiv = document.getElementById('iframeList');
                     modal.style.display = 'flex';
-                    listDiv.innerHTML = '<div style="text-align:center; color:#ffcc00; font-weight:bold; padding: 20px;">جاري الفحص واستخراج الإطارات الداخلية (Deep Scan)... ⏳<br><span style="font-size:12px;color:#ccc;">جاري تخطي الحماية وسحب الروابط المخفية</span></div>';
+                    listDiv.innerHTML = '<div style="text-align:center; color:#ffcc00; font-weight:bold; padding: 20px;">جاري الفحص واستخراج الإطارات الداخلية (Deep Scan)... ⏳<br><span style="font-size:12px;color:#ccc;">جاري تخطي الحماية وسحب الروابط المخفية بـ 3 أدوات بروكسي مختلفة</span></div>';
 
+                    let foundIframes = [];
+
+                    // المحاولة الأولى
                     try {
-                        // المحاولة الأولى بسيرفر بروكسي خام
-                        let proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(currentStreamUrl);
-                        let response = await fetch(proxyUrl);
-                        let htmlCode = await response.text();
+                        let proxyUrl1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(currentStreamUrl);
+                        let response1 = await fetch(proxyUrl1);
+                        let htmlCode1 = await response1.text();
+                        foundIframes = extractUrlsFromHTML(htmlCode1, currentStreamUrl);
+                    } catch(e) { console.warn("المحاولة 1 فشلت."); }
 
-                        if(!htmlCode) throw new Error("No content");
-
-                        // فحص جميع صيغ الإطارات المخفية (src و data-src) لتخطي الـ lazy loading
-                        let iframeRegex = /<iframe[^>]+(?:src|data-src)=["']([^"']+)["']/gi;
-                        let match;
-                        let foundIframes = [];
-
-                        while ((match = iframeRegex.exec(htmlCode)) !== null) {
-                            let extractedUrl = match[1].trim();
-                            // استبعاد about:blank والنصوص الفارغة
-                            if (extractedUrl && extractedUrl !== 'about:blank' && !extractedUrl.startsWith('javascript:')) {
-                                // معالجة الروابط اللي ناقصها بروتوكول
-                                if(extractedUrl.startsWith('//')) {
-                                    extractedUrl = 'https:' + extractedUrl;
-                                } else if (extractedUrl.startsWith('/')) {
-                                    let urlObj = new URL(currentStreamUrl);
-                                    extractedUrl = urlObj.origin + extractedUrl;
-                                }
-                                foundIframes.push(extractedUrl);
-                            }
-                        }
-
-                        // إزالة التكرار
-                        foundIframes = [...new Set(foundIframes)];
-
-                        let uiHtml = '';
-                        uiHtml += buildIframeRow('0 (الرابط الأساسي للموقع)', currentStreamUrl);
-
-                        if(foundIframes.length > 0) {
-                            foundIframes.forEach((src, index) => {
-                                uiHtml += buildIframeRow('إطار ' + (index + 1), src);
-                            });
-                        } else {
-                            uiHtml += '<p style="color:#e74c3c; font-size:14px; margin-top:15px; font-weight:bold;">⚠️ لم يتم العثور على إطارات إضافية، نعرض الرابط الأساسي فقط.</p>';
-                        }
-
-                        listDiv.innerHTML = uiHtml;
-
-                    } catch(e) {
-                        console.error("المحاولة الأولى فشلت، جاري تجربة المحاولة الثانية...", e);
-                        // نظام الطوارئ (بروكسي ثاني لو الموقع محمي جداً)
+                    // المحاولة الثانية لو الأولى مجابتش حاجة
+                    if (foundIframes.length === 0) {
                         try {
-                           let proxyUrl2 = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(currentStreamUrl);
-                           let response2 = await fetch(proxyUrl2);
-                           let htmlCode2 = await response2.text();
-                           
-                           let iframeRegex2 = /<iframe[^>]+(?:src|data-src)=["']([^"']+)["']/gi;
-                           let match2;
-                           let foundIframes2 = [];
-
-                           while ((match2 = iframeRegex2.exec(htmlCode2)) !== null) {
-                               let extractedUrl2 = match2[1].trim();
-                               if (extractedUrl2 && extractedUrl2 !== 'about:blank' && !extractedUrl2.startsWith('javascript:')) {
-                                   if(extractedUrl2.startsWith('//')) extractedUrl2 = 'https:' + extractedUrl2;
-                                   foundIframes2.push(extractedUrl2);
-                               }
-                           }
-                           
-                           foundIframes2 = [...new Set(foundIframes2)];
-                           let uiHtml2 = buildIframeRow('0 (الرابط الأساسي)', currentStreamUrl);
-                           if(foundIframes2.length > 0) {
-                               foundIframes2.forEach((src, index) => {
-                                   uiHtml2 += buildIframeRow('إطار ' + (index + 1), src);
-                               });
-                           } else {
-                               uiHtml2 += '<p style="color:#e74c3c; font-size:14px; margin-top:15px; font-weight:bold;">⚠️ الموقع يمنع سحب الكود بقوة، نعرض الرابط الأساسي فقط.</p>';
-                           }
-                           listDiv.innerHTML = uiHtml2;
-                        } catch(err2) {
-                            let uiHtml = '<p style="color:#e74c3c; font-size:14px; margin-bottom:15px; font-weight:bold;">⚠️ فشل الفحص العميق (الموقع محمي جداً). نعرض الرابط الأساسي فقط:</p>';
-                            uiHtml += buildIframeRow('0 (الرابط الأساسي)', currentStreamUrl);
-                            listDiv.innerHTML = uiHtml;
-                        }
+                            let proxyUrl2 = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(currentStreamUrl);
+                            let response2 = await fetch(proxyUrl2);
+                            let htmlCode2 = await response2.text();
+                            foundIframes = extractUrlsFromHTML(htmlCode2, currentStreamUrl);
+                        } catch(e) { console.warn("المحاولة 2 فشلت."); }
                     }
+
+                    // المحاولة التالتة القوية كحل أخير (Corsproxy)
+                    if (foundIframes.length === 0) {
+                        try {
+                            let proxyUrl3 = 'https://corsproxy.io/?' + encodeURIComponent(currentStreamUrl);
+                            let response3 = await fetch(proxyUrl3);
+                            let htmlCode3 = await response3.text();
+                            foundIframes = extractUrlsFromHTML(htmlCode3, currentStreamUrl);
+                        } catch(e) { console.warn("المحاولة 3 فشلت."); }
+                    }
+
+                    // عرض النتايج النهائية
+                    let uiHtml = buildIframeRow('0 (الرابط الأساسي للموقع)', currentStreamUrl);
+                    
+                    if(foundIframes.length > 0) {
+                        foundIframes.forEach((src, index) => {
+                            uiHtml += buildIframeRow('إطار ' + (index + 1), src);
+                        });
+                    } else {
+                        uiHtml += '<p style="color:#e74c3c; font-size:14px; margin-top:15px; font-weight:bold;">⚠️ الموقع يمنع سحب الكود بقوة أو لا يحتوي على إطارات فعلية، نعرض الرابط الأساسي فقط.</p>';
+                    }
+
+                    listDiv.innerHTML = uiHtml;
+
                 } else {
                     alert("القناة الحالية عبارة عن فيديو مباشر (M3U8/MP4) وليست إطار (Iframe) أو موقع.");
                 }
             } else {
                 alert("لا توجد قناة تعمل حالياً! قم بتشغيل قناة أولاً.");
             }
+        }
+
+        // فلترة الروابط وتجاهل about:blank
+        function extractUrlsFromHTML(htmlCode, baseUrl) {
+            let extracted = [];
+            if(!htmlCode) return extracted;
+            
+            let iframeRegex = /<iframe[^>]+(?:src|data-src)=["']([^"']+)["']/gi;
+            let match;
+            
+            while ((match = iframeRegex.exec(htmlCode)) !== null) {
+                let url = match[1].trim();
+                if (url && url !== 'about:blank' && !url.startsWith('javascript:')) {
+                    if(url.startsWith('//')) {
+                        url = 'https:' + url;
+                    } else if (url.startsWith('/')) {
+                        let urlObj = new URL(baseUrl);
+                        url = urlObj.origin + url;
+                    }
+                    extracted.push(url);
+                }
+            }
+            return [...new Set(extracted)]; // إزالة التكرار
         }
 
         // بناء صف الرابط داخل النافذة المنبثقة
@@ -732,7 +705,7 @@
         var hls = new Hls({ maxBufferLength: 20, liveSyncDurationCount: 3, lowLatencyMode: true });
 
         function loadStream(url) {
-            document.getElementById('directPlayInput').value = ''; // تصفير شريط التشغيل المباشر
+            document.getElementById('directPlayInput').value = ''; 
             currentStreamUrl = url; 
 
             loader.style.display = 'flex';
